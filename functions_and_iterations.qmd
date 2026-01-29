@@ -1,0 +1,355 @@
+---
+title: "functions_and_iteration"
+format: pdf
+editor: visual
+---
+
+## Functions and Iterations by Molly and Eric
+
+```{r}
+#Reading in packages we need
+library(tidyverse)
+library(here)
+```
+
+#### Building a function
+
+```{r}
+# Create a new function called add_one
+# x will be the only input to the function
+add_one  <- function(x){
+  
+  # Add x and 1 together, store as the object "output"
+  answer <- x + 1
+  
+  # Print out whatever is stored in "output"
+  return(answer)
+  
+} 
+
+add_one(x=4)
+
+#working with multiple arguments
+
+# Create a new function called add_together
+# x and y will be the two arguments to the function
+add_together  <- function(x, y){
+  
+  # Add x and y together, store as the object "output"
+  output <- x + y
+  
+  # Print out whatever is stored in "output"
+  return(output)
+  
+} 
+```
+
+### Q1.1 Feed our new function two numbers
+
+```{r}
+add_together(3,5)
+```
+
+### Q1.2 Feed our new function a number and a character string
+
+```{r eval=FALSE}
+add_together(3,"five")
+```
+
+non numeric argument in operator
+
+#### Accessing source code
+
+```{r}
+add_together
+
+```
+
+### Q1.3 Create your own function!
+
+```{r}
+math_time <- function(x,y,z){
+  output <- (x-y)^2/z
+return(output)
+}
+
+math_time(5,2,9)
+```
+
+####Vectors as inputs
+
+```{r}
+# Create a function called lbs_to_kg that takes a data object 'weights' as input
+lbs_to_kg  <- function(weights){
+  
+  # Multiply weights by 0.454, store as the object "output"
+  output <- weights*0.454
+  
+  # Print out whatever is stored in "output"
+  return(output)
+  
+} 
+
+#Vector of bison weights
+bison <- c(1000, 800, 1200, 1400)
+
+#Feeding it to our function 
+
+lbs_to_kg(weights = bison)
+```
+
+### Q1.4 Calculate deviation from a mean
+
+```{r}
+deviation <- function(cow){
+  output <- cow-mean(cow)
+  return(output)
+}
+deviation(cow = bison)
+```
+
+#### Working with iterations
+
+```{r}
+# Look at the first 6 rows of iris
+head(iris)
+```
+
+### Q2.1: What are the units that the sepal and petal columns are measured in?
+
+The measurements are in centimeters.
+
+```{r}
+#Getting avergaes of all measurments by species 
+iris %>% 
+  group_by(Species) %>% 
+  summarize(Sepal.Length = mean(Sepal.Length),
+            Sepal.Width = mean(Sepal.Width),
+            Petal.Length = mean(Petal.Length),
+            Petal.Width = mean(Petal.Width))
+
+#Using the across function 
+
+iris %>%
+  group_by(Species) %>% 
+  summarize(across(.cols = c(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width), 
+                   .fns = mean))
+
+#Some tricks for selecting columns
+iris %>%
+  group_by(Species) %>% 
+  summarize(across(.cols = Sepal.Length:Petal.Width, 
+                   .fns = mean))
+
+#Using 'everything'
+iris %>%
+  group_by(Species) %>% 
+  summarize(across(.cols = everything(), 
+                   .fns = mean))
+
+
+```
+
+### Q2.2 Summarize to calculate the median across all columns
+
+```{r}
+iris %>%
+  group_by(Species) %>% 
+  summarize(across(.cols = where(is.numeric),
+                                 .fns = median))
+            
+```
+
+### Q2.3 Summarize to calculate the mean across all numeric columns in the cereal data
+
+```{r}
+cereal <- read.csv("data/cereal.csv")
+
+cereal %>% 
+  group_by(mfr) %>% 
+  summarize(across(.cols = where(is.numeric),
+                                 .fns = mean))
+```
+
+#### Practicing Loops
+
+```{r}
+#The most basic example of a loop 
+
+for (i in 1:5) {
+  # Print out whatever the value of i is
+  print(i)
+}
+
+#Manually running first two iterations of the loop 
+
+# First iteration where i = 1:
+i <- 1
+print(i)
+# Second iteration where i = 2
+i <- 2
+print(i)
+
+#Using mutiplication in our loop
+for (i in 1:5) {
+  print(i*2)
+}
+```
+
+### Q2.4 Create a for loop that iterates from 1 to 10 and squares the value of the index `i`
+
+```{r}
+for (i in 1:10) {
+  # Print out whatever the value of i is
+  print(i^2)
+}
+```
+
+#### Using a four loop to simulate data
+
+```{r}
+N0 = 100  #initial population size
+
+years = 20  #number of years into the future
+
+N = vector(length = years)  # create an empty vector to store pop. sizes
+
+N[1] = N0  #initial population size should be the first N
+
+lambda = 1.2  #growth rate
+
+print(N)
+
+N[5]
+
+N[1]
+
+# For every year t in 2 through 20 (remember, "years" also equals 20), apply the following equation
+for (t in 2:20) {
+  N[t] = N[t - 1] * lambda # Apply the equation
+}
+
+N
+
+```
+
+### Q2.5a Rerun the for loop with the following parameters:
+
+```{r}
+N0 = 300
+lambda = 0.95
+years = 50
+N = vector(length=years)
+N[1] = N0
+N
+
+for (t in 2:50) {
+  N[t] = N[t - 1] * lambda}
+
+N
+```
+
+### Q2.5b Plot the data and interpret
+
+```{r}
+popn_data <- tibble(years = 1:years, # Make the years column = 1, 2, 3, ..., 20
+                    popn = N)
+popn_data %>% 
+  ggplot(aes(x=years,
+             y=popn))+
+  geom_point()
+```
+
+The population is decreasing almost exponentially.
+
+#### Looping through data frames
+
+```{r}
+head(iris)
+
+#extracting elements
+#getting the first row
+iris[1,]
+#getting the data in the third column as a vector
+iris[,3]
+#getting exact value in the first row and third column 
+iris[1,3]
+
+#iteratively performing each action 
+for (i in 1:5) {
+  
+  # This prints out a statement saying "Here's column i", 
+  #but the i gets replaced with the number that it's currently at
+  print(paste("Here's column",i))
+  
+  # This prints out column i
+  print(iris[,i])
+}
+
+#taking the mean of each function
+for (i in 1:4) {
+  
+  # This prints out a statement saying "Here's column i", but the i gets replaced with the number that it's currently at
+  print(paste("Here's column",i))
+  
+  # This prints out column i
+  print(mean(iris[,i]))
+}
+
+#Using across to do the same 
+iris %>% 
+  summarize(across(.cols = 1:4, 
+                   .fns = mean))
+```
+
+### Q2.6 Which do you prefer?
+
+In this instance I prefer across as it maintains the table format.
+
+```{r}
+#Adding names to the four loop 
+for (i in 1:4) {
+  # Fetch the column names of the dataframe, store in a vector "names"
+  names <- colnames(iris)
+  
+  # Print out the "i"th element of the vector to print alongside the output
+  print(names[i])
+  
+  # This prints out column i
+  print(mean(iris[,i]))
+}
+```
+
+### Q2.7 Annotate this code with what you think it's doing
+
+```{r}
+# Store a vector of unique species names from the Species column of Iris
+spp_names <- unique(iris$Species)
+
+#Create a loop that iterates across the total numnber of species 
+for (i in 1:length(spp_names)) {
+  
+  filt_data <- iris %>% 
+    #Filters to species [i] indexed species name
+    filter(Species == spp_names[i])
+  
+  # Plots filtered data of species [1]
+  plot <- filt_data %>% 
+    # Petal length on the x-axis and width on the y-axis
+    ggplot(aes(x = Petal.Length,
+               y = Petal.Width)) +
+    # Creates points
+    geom_point() +
+    # Creates a linear model showing the relationship across points
+    geom_smooth(method = "lm") +
+    # Limits x and y to specified values
+    lims(x = c(0,8),
+         y = c(0,3)) +
+    # Titles plot with species of [i]
+    ggtitle(paste("Species:", spp_names[i]))
+  
+  # Shows the plot
+  print(plot)
+}
+
+```
